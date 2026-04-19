@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOID | Secure Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'JetBrains Mono', monospace; background: #000; color: #fff; overflow-x: hidden; min-height: 100vh; }
+        .terminal-input { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; padding: 0.8rem; padding-right: 2.5rem; font-size: 10px; color: #fff; outline: none; transition: 0.3s; }
+        .terminal-input:focus { border-color: #fff; background: rgba(255, 255, 255, 0.08); }
+        
+        .eye-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; opacity: 0.4; transition: 0.3s; font-size: 14px; background: none; border: none; color: white; }
+        .eye-btn:hover { opacity: 1; }
+
+        .valid-check { color: #22c55e; }
+        .invalid-check { color: #ef4444; opacity: 0.4; }
+        .hidden-entity { display: none; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeIn 0.5s ease forwards; }
+
+        .lock-btn { opacity: 0.2; cursor: not-allowed; pointer-events: none; }
+        .unlock-btn { opacity: 1; cursor: pointer; pointer-events: auto; }
+    </style>
+</head>
+<body>
+
+    <div id="status-modal" class="fixed inset-0 bg-black/95 z-[100] hidden flex items-center justify-center p-6">
+        <div class="border border-white/10 p-10 max-w-sm w-full text-center space-y-6 bg-zinc-950">
+            <div class="flex justify-center"><div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div></div>
+            <h2 id="modal-title" class="text-xl font-bold tracking-[8px] uppercase">Uplinked</h2>
+            <p id="modal-msg" class="text-[9px] text-gray-500 tracking-[3px] uppercase italic">Handshake verified. Accessing timeline...</p>
+            <a href="timeline.html" class="block w-full py-4 bg-white text-black text-[10px] font-bold uppercase tracking-[4px] hover:invert transition">Proceed to Timeline</a>
+        </div>
+    </div>
+
+    <nav class="flex justify-between items-center px-8 py-6 border-b border-white/5 backdrop-blur-md sticky top-0 z-50">
+        <div class="flex items-center space-x-6">
+            <button onclick="window.history.back()" class="text-xl hover:text-gray-400">←</button>
+            <span onclick="toggleFullScreen()" class="text-2xl font-black tracking-[10px] cursor-pointer">VOID</span>
+        </div>
+        <div class="space-x-4">
+            <button onclick="showEntity('login')" id="nav-login" class="text-[9px] uppercase tracking-widest px-4 py-2 border border-white/10 hover:bg-white hover:text-black transition">Login</button>
+            <button onclick="showEntity('signup')" id="nav-signup" class="text-[9px] uppercase tracking-widest px-4 py-2 bg-white text-black">Sign Up</button>
+        </div>
+    </nav>
+
+    <main class="flex flex-col items-center justify-center py-16 px-6">
+        
+        <div id="login-entity" class="w-full max-w-sm space-y-8 animate-in hidden-entity">
+            <div class="text-center">
+                <h1 class="text-4xl font-black italic tracking-tighter">IDENTITY_AUTH</h1>
+                <p class="text-[9px] text-gray-500 uppercase tracking-[4px] mt-2">Vector Handshake Required</p>
+            </div>
+            <form class="space-y-4" onsubmit="handleAuth(event, 'Uplinked_Successfully')">
+                <div>
+                    <label class="text-[8px] text-gray-600 uppercase mb-1 block">Email_Protocol</label>
+                    <input type="email" id="log-email" required class="terminal-input" placeholder="NAME@DOMAIN.COM">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[8px] text-gray-600 uppercase mb-1 block">Entropy_Key</label>
+                    <div class="relative">
+                        <input type="password" id="log-pass" required class="terminal-input" placeholder="••••••••">
+                        <button type="button" onclick="togglePass('log-pass')" class="eye-btn">👁</button>
+                    </div>
+                </div>
+                <button type="submit" id="log-btn" class="w-full py-4 bg-white text-black text-[10px] font-bold uppercase tracking-[5px] lock-btn">Establish Uplink</button>
+            </form>
+        </div>
+
+        <div id="signup-entity" class="w-full max-w-md space-y-8 animate-in">
+            <div class="text-center">
+                <h1 class="text-4xl font-black italic tracking-tighter">NODE_REGISTRY</h1>
+                <p class="text-[9px] text-gray-500 uppercase tracking-[4px] mt-2">Required Registry Fields</p>
+            </div>
+            <form class="space-y-4" onsubmit="handleAuth(event, 'PARADIGM_SHIFT_AUTHORIZED')">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="text-[8px] text-gray-600 uppercase mb-1 block">User_Alias</label>
+                        <input type="text" id="reg-user" required class="terminal-input" placeholder="GHOST_OPERATIVE">
+                    </div>
+                    <div><label class="text-[8px] text-gray-600 uppercase mb-1 block">Age</label><input type="number" id="reg-age" required class="terminal-input" placeholder="21"></div>
+                    <div><label class="text-[8px] text-gray-600 uppercase mb-1 block">Gender</label><select class="terminal-input bg-black"><option>MALE</option><option>FEMALE</option><option>OTHER</option></select></div>
+                </div>
+                <div><label class="text-[8px] text-gray-600 uppercase mb-1 block">Birth_Date</label><input type="date" id="reg-dob" required class="terminal-input"></div>
+                <div><label class="text-[8px] text-gray-600 uppercase mb-1 block">Email_Reg</label><input type="email" id="reg-email" required class="terminal-input" placeholder="USER@VOID.SPACE"></div>
+
+                <div class="space-y-2">
+                    <label class="text-[8px] text-gray-600 uppercase mb-1 block">Entropy_Key</label>
+                    <div class="relative">
+                        <input type="password" id="reg-pass" required class="terminal-input" placeholder="••••••••">
+                        <button type="button" onclick="togglePass('reg-pass')" class="eye-btn">👁</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 p-3 bg-white/5 text-[8px] uppercase tracking-widest border border-white/5">
+                        <div id="check-len" class="invalid-check">● 8+ Chars</div>
+                        <div id="check-upper" class="invalid-check">● UpperCase</div>
+                        <div id="check-num" class="invalid-check">● Number</div>
+                        <div id="check-spec" class="invalid-check">● Special</div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[8px] text-gray-600 uppercase mb-1 block">Confirm_Entropy</label>
+                    <div class="relative">
+                        <input type="password" id="reg-confirm" required class="terminal-input" placeholder="••••••••">
+                        <button type="button" onclick="togglePass('reg-confirm')" class="eye-btn">👁</button>
+                    </div>
+                </div>
+
+                <button type="submit" id="reg-btn" class="w-full py-4 bg-white text-black text-[10px] font-bold uppercase tracking-[5px] lock-btn">Initialize Registry</button>
+            </form>
+        </div>
+
+    </main>
+
+    <script>
+        function togglePass(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function showEntity(type) {
+            document.getElementById('login-entity').classList.toggle('hidden-entity', type !== 'login');
+            document.getElementById('signup-entity').classList.toggle('hidden-entity', type !== 'signup');
+            // Stylize nav buttons
+            document.getElementById('nav-login').className = type === 'login' ? 'text-[9px] uppercase tracking-widest px-4 py-2 bg-white text-black' : 'text-[9px] uppercase tracking-widest px-4 py-2 border border-white/10 hover:bg-white hover:text-black transition';
+            document.getElementById('nav-signup').className = type === 'signup' ? 'text-[9px] uppercase tracking-widest px-4 py-2 bg-white text-black' : 'text-[9px] uppercase tracking-widest px-4 py-2 border border-white/10 hover:bg-white hover:text-black transition';
+        }
+
+        // --- VALIDATION ENGINE ---
+        function checkStrength(val) {
+            return {
+                len: val.length >= 8,
+                upper: /[A-Z]/.test(val),
+                num: /[0-9]/.test(val),
+                spec: /[^A-Za-z0-9]/.test(val)
+            };
+        }
+
+        function updateChecklist(checks) {
+            Object.keys(checks).forEach(id => {
+                const el = document.getElementById('check-' + id);
+                if(el) el.className = checks[id] ? 'valid-check' : 'invalid-check';
+            });
+        }
+
+        // Global Validation Loop
+        function runGlobalValidation() {
+            // Login Validation
+            const logEmail = document.getElementById('log-email').value;
+            const logPass = document.getElementById('log-pass').value;
+            const logBtn = document.getElementById('log-btn');
+            const logPassChecks = checkStrength(logPass);
+            const logValid = logEmail.includes('@') && logEmail.length > 5 && Object.values(logPassChecks).every(Boolean);
+            
+            logBtn.className = logValid ? "w-full py-4 bg-white text-black text-[10px] font-bold uppercase tracking-[5px] unlock-btn" : "w-full py-4 bg-white text-black text-[10px] font-bold uppercase tracking-[5px] lock-btn";
+
+            // Signup Validation
+            const regEmail = document.getElementById('reg-email').value;
+            const regPass = document.getElementById('reg-pass').value;
+            const regConf = document.getElementById('reg-confirm').value;
+            const regUser = document.getElementById('reg-user').value;
+            const regBtn = document.getElementById('reg-btn');
+            
+            const regPassChecks = checkStrength(regPass);
+            updateChecklist(regPassChecks);
+            
+            const regValid = regEmail.includes('@') && 
+                             regUser.length > 2 &&
+                             Object.values(regPassChecks).every(Boolean) && 
+                             regPass === regConf &&
+                             regPass !== "";
+
+            regBtn.className = regValid ? "w-full py-4 bg-white text-black text-[10px] font-bold uppercase tracking-[5px] unlock-btn" : "w-full py-4 bg-white text-black text-[10px] font-bold uppercase tracking-[5px] lock-btn";
+        }
+
+        
+        document.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('input', runGlobalValidation);
+        });
+
+        function handleAuth(e, title) {
+            e.preventDefault();
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('status-modal').classList.remove('hidden');
+            document.getElementById('status-modal').classList.add('flex');
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The VOID</title>
+    <link rel="stylesheet" href="vanish.css">
+</head>
+<body>
+
+    <div id="canvas" class="main-container">
+        <div class="content">
+            <h1 class="logo">VOID</h1>
+            <p class="status">SYSTEM CONNECTING...</p>
+        </div>
+    </div>
+
+    <script>
+window.onload = () => {
+    // This finds the box with id="canvas"
+    const page = document.getElementById('canvas');
+
+    if (page) {
+        
+        setTimeout(() => {
+            console.log("Starting vanish...");
+            page.classList.add('vanish-effect');
+        }, 200);
+        
+      setTimeout(function() {
+      window.location.href = "timeline.html";
+    }, 800);
+    } else {
+        console.error("Could not find the element with id 'canvas'");
+    }
+};
+</script>
+</body>
+</html>

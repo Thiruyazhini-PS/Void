@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOID | Recovered Log // The Singularity</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background-color: #000; 
+            color: #fff; 
+            font-family: 'Space Grotesk', sans-serif; 
+            overflow-y: scroll;
+            scrollbar-width: none;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 45vh; 
+            padding-bottom: 25vh;
+        }
+        body::-webkit-scrollbar { display: none; }
+        
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* BACK BUTTON STYLING */
+        .back-btn {
+            position: fixed;
+            top: 40px;
+            left: 40px;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            text-decoration: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 3px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+        .back-btn:hover {
+            color: #fff;
+            border-color: #fff;
+            padding-left: 20px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .bg-text {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 14vw; font-weight: 900; opacity: 0.02; z-index: -1; 
+            text-transform: uppercase; letter-spacing: 60px; pointer-events: none;
+            white-space: nowrap; filter: blur(1px);
+        }
+
+        #storyContainer {
+            max-width: 850px;
+            width: 90%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .cursor { 
+            display: inline-block; width: 10px; height: 28px; background: #fff; 
+            animation: blink 0.8s infinite; vertical-align: middle; margin-left: 8px;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .data-line {
+            color: #22c55e; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem; opacity: 0.9; letter-spacing: 1px;
+        }
+
+        .scanlines {
+            position: fixed; inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px; z-index: 100; pointer-events: none; opacity: 0.4;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="riddle.html" class="back-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        RETURN_TO_TERMINAL
+    </a>
+
+    <div class="scanlines"></div>
+    <div id="bgWord" class="bg-text">INFINITY</div>
+
+    <div id="storyContainer">
+        <div class="text-xl md:text-3xl leading-relaxed text-gray-300 font-light italic">
+            <span id="typingArea"></span><span id="cursor" class="cursor"></span>
+        </div>
+    </div>
+
+    <div class="fixed bottom-10 w-full px-12 flex justify-between items-center mono text-[9px] text-gray-700 tracking-[6px] uppercase">
+        <div class="flex items-center gap-4">
+            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            UPLINK_STABLE // ARCHIVE_NODE_04
+        </div>
+        <div>CALCULATION: INFINITE_DENSITY</div>
+    </div>
+
+    <script>
+        const storyContent = [
+            "“The equations ended in infinity.",
+            "We thought that meant failure.",
+            "But the system didn’t crash… it repeated.",
+            "As if the singularity wasn’t an end—",
+            "but something looping… waiting…",
+            "for something to enter it.”",
+            "DIVIDER", 
+            "REPORT: Yes. Current theory suggests every black hole contains a core.",
+            "DEFINITION: A singularity—a point of infinite density.",
+            "PHYSICS: The junction where known physical laws break down.",
+            "HISTORY: Predicted by Einstein’s equations (1915–1916).",
+            "STATUS: Direct observation remains mathematically impossible."
+        ];
+
+        let lineIndex = 0;
+        let charIndex = 0;
+        const typingArea = document.getElementById('typingArea');
+
+        function typeLetter() {
+            if (lineIndex < storyContent.length) {
+                const currentLine = storyContent[lineIndex];
+
+                if (currentLine === "DIVIDER") {
+                    typingArea.appendChild(document.createElement('br'));
+                    const hr = document.createElement('hr');
+                    hr.style.cssText = "border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 45px 0; width: 80px;";
+                    typingArea.appendChild(hr);
+                    lineIndex++;
+                    setTimeout(typeLetter, 800);
+                    return;
+                }
+
+                if (charIndex < currentLine.length) {
+                    const span = document.createElement('span');
+                    span.innerText = currentLine[charIndex];
+                    
+                    if (lineIndex > 6) {
+                        span.className = "data-line";
+                        typingArea.parentElement.classList.remove('italic');
+                    }
+
+                    typingArea.appendChild(span);
+                    charIndex++;
+
+                    window.scrollTo({
+                        top: document.body.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                    
+                    let speed = (lineIndex > 6) ? 15 : 45;
+                    setTimeout(typeLetter, speed);
+                } else {
+                    typingArea.appendChild(document.createElement('br'));
+                    typingArea.appendChild(document.createElement('br'));
+                    
+                    lineIndex++;
+                    charIndex = 0;
+                    
+                    let pause = (lineIndex === 7) ? 2000 : 1000;
+                    setTimeout(typeLetter, pause);
+                }
+            }
+        }
+
+        window.onload = () => {
+            setTimeout(typeLetter, 1200);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Space Voyage | Multiplanetary Future</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #000;
+    color: #fff;
+    scroll-behavior: smooth;
+}
+#void-logo {
+  transition: filter 0.3s ease, transform 0.2s ease;
+}
+
+#void-logo:hover {
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+  transform: scale(1.02); /* Very slight pop on hover */
+}
+
+.glass-nav {
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(10px);
+}
+
+
+.hero-bg {
+    background: linear-gradient(to right, rgba(0,0,0,0.85), transparent),
+                url('hero.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease;
+}
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
+<script>
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch((err) => {
+                console.warn(`VOID_SYSTEM: Error enabling fullscreen (${err.message})`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+</script>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-8 py-4 glass-nav border-b border-white/10">
+    <div class="flex items-center space-x-8">
+        
+        <span 
+            id="void-logo" 
+            onclick="toggleFullScreen()" 
+            class="text-2xl font-black tracking-[6px] uppercase cursor-pointer transition-all duration-300 hover:text-white/80 hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
+            VOID
+        </span>
+
+        <div class="hidden md:flex space-x-10 text-[11px] tracking-[4px] uppercase text-gray-500">
+            <a href="https://www.preceden.com/timelines/1368254-timeline-of-space-history/af042af6fefed538" class="hover:text-white transition">Chronicles</a>
+            <a href="https://spacefaring.is/" class="hover:text-white transition">Paths</a>
+            <a href="https://www.onspace.org/interactive/" class="hover:text-white transition">VirtualAnalogy</a>
+            <a href="https://www.bbc.com/audio/play/w3ct5n37" class="hover:text-white transition">Archive</a>
+            <a href="https://www.space.fm/astronomy/activities/inter_bigbang.html" class="hover:text-white transition">Origin</a>
+            <a href="about.html" class="hover:text-white transition">About</a>
+        </div>
+    </div>
+
+    <div class="flex items-center space-x-6">
+        <button onclick="toggleNotes()" class="text-[10px] tracking-[3px] uppercase text-gray-500 hover:text-white transition">
+            [Data_Log]
+        </button>
+
+      <div class="relative">
+    <input type="text" 
+           id="void-search"
+           placeholder="Search the void..."
+           onkeyup="executeVoidSearch(event)"
+           class="bg-transparent border-b border-white/40 text-xs tracking-[3px] uppercase outline-none px-2 py-1 w-40 focus:w-56 transition-all duration-500 placeholder-gray-500 focus:border-white">
+</div>
+    </div>
+</nav>
+
+<div id="notesPanel" class="fixed top-0 right-0 h-full w-80 bg-black/95 backdrop-blur-xl z-[60] border-l border-white/10 p-10 pt-28 transition-transform duration-500 translate-x-full">
+    
+    <button onclick="toggleNotes()" class="absolute top-8 right-8 text-[10px] font-mono text-gray-500 hover:text-white transition tracking-widest">
+        [ CLOSE_X ]
+    </button>
+
+    <h3 class="text-xs font-bold uppercase tracking-[4px] mb-6 border-b border-white/10 pb-4 text-white">Mission_Notes</h3>
+    
+    <textarea class="w-full h-64 bg-white/5 border border-white/10 p-4 text-[11px] font-mono outline-none text-white resize-none focus:border-white/30 transition" 
+              placeholder="Input coordinates or mission observations..."></textarea>
+    
+    <button class="mt-4 w-full bg-white text-black py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-200 transition shadow-lg">
+        Save Log Entry
+    </button>
+
+    <div class="mt-8 opacity-20 pointer-events-none">
+        <p class="text-[9px] font-mono leading-loose">
+            ENCRYPTION: AES-256<br>
+            STATUS: SYNCING...<br>
+            LOCATION: ORBITAL_NODE_04
+        </p>
+    </div>
+</div>
+
+<div id="authModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/80 backdrop-blur-md px-4">
+    <div class="bg-black border border-white/10 p-10 w-full max-w-md space-y-6 relative">
+        <button onclick="closeAuth()" class="absolute top-4 right-6 text-gray-500 hover:text-white font-mono text-xs">CLOSE_</button>
+        <div class="text-center">
+            <h2 class="text-2xl font-black uppercase tracking-tighter">Identity Verification</h2>
+            <p class="text-[10px] text-gray-500 tracking-widest mt-1">SECURE_UPLINK_REQUIRED</p>
+        </div>
+        <input type="email" placeholder="USER_ID" class="w-full bg-white/5 border border-white/10 p-4 text-xs outline-none focus:border-white/40 transition">
+        <input type="password" placeholder="PASS_CRYPT" class="w-full bg-white/5 border border-white/10 p-4 text-xs outline-none focus:border-white/40 transition">
+        <button class="w-full bg-white text-black py-4 font-black uppercase text-xs tracking-widest hover:bg-gray-200 transition">Initialize Session</button>
+    </div>
+</div>
+
+<script>
+    function toggleNotes() {
+        const panel = document.getElementById('notesPanel');
+        panel.classList.toggle('translate-x-full');
+    }
+
+    function openAuth() {
+        document.getElementById('authModal').classList.remove('hidden');
+    }
+
+    function closeAuth() {
+        document.getElementById('authModal').classList.add('hidden');
+    }
+
+    // Close on Escape key
+    window.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape') {
+            closeAuth();
+            document.getElementById('notesPanel').classList.add('translate-x-full');
+        }
+    });
+</script>
+
+
+<!-- HERO -->
+<header class="relative h-screen overflow-hidden">
+
+    <!-- VIDEO BACKGROUND -->
+    <video autoplay muted loop playsinline 
+    class="absolute inset-0 w-full h-full object-cover">
+        <source src="V-1.mp4" type="video/mp4">
+    </video>
+
+   
+
+    <!-- BOTTOM FADE -->
+    <div class="absolute bottom-0 w-full h-60 bg-gradient-to-b from-transparent to-black"></div>
+
+    <!-- LIGHT DARK OVERLAY -->
+    <div class="absolute inset-2 bg-black/1"></div>
+
+    <!-- LEFT SIDE CONTENT -->
+    <div class="absolute top-1/2 left-12 transform -translate-y-1/2 z-10 max-w-2xl space-y-6">
+        <!-- SMALL TEXT -->
+        <p class="text-[10px] tracking-[8px] text-gray-500 uppercase">
+            signal detected
+        </p>
+
+        <!-- MAIN TITLE -->
+        <h1 class="text-7xl font-black leading-none" style="letter-spacing:-2px;">
+           BEYOND<br>EARTH
+        </h1>
+        
+        <!-- DESCRIPTION -->
+        <p class="text-gray-400 max-w-md">
+            Explore the missions and technologies shaping humanity’s future beyond our planet. Not a mission. Not a destination.  
+            A transition.
+        </p>
+         
+        <!-- CTA -->
+        <a href="Learn.html"
+        class="mt-6 inline-flex items-center text-sm tracking-[4px] uppercase group text-gray-300 hover:text-white transition">
+            sign up for more
+            <span class="ml-4 group-hover:translate-x-6 transition-all duration-500">→</span>
+        </a>
+    </div>
+
+<div class="absolute bottom-1 right-6 flex flex-col space-y-2 z-20 border-r border-white/10 pr-4 items-end">
+    
+
+
+    <a href="https://eyes.nasa.gov/apps/solar-system/" target="_blank"
+       class="group flex flex-col items-end py-2 transition-all duration-300">
+        <span class="text-[10px] font-mono text-gray-500 group-hover:text-white uppercase tracking-widest transition">Visualizer: 01</span>
+        <span class="text-xs font-bold text-white uppercase tracking-tighter border-b border-transparent group-hover:border-white transition">Solar System</span>
+    </a>
+
+    <a href="https://eyes.nasa.gov/apps/asteroids" target="_blank"
+       class="group flex flex-col items-end py-2 transition-all duration-300">
+        <span class="text-[10px] font-mono text-gray-500 group-hover:text-white uppercase tracking-widest transition">Visualizer: 02</span>
+        <span class="text-xs font-bold text-white uppercase tracking-tighter border-b border-transparent group-hover:border-white transition">Asteroid Belt</span>
+    </a>
+
+    <a href="https://eyes.nasa.gov/apps/earth" target="_blank"
+       class="group flex flex-col items-end py-2 transition-all duration-300">
+        <span class="text-[10px] font-mono text-gray-500 group-hover:text-white uppercase tracking-widest transition">Visualizer: 03</span>
+        <span class="text-xs font-bold text-white uppercase tracking-tighter border-b border-transparent group-hover:border-white transition">Terrestrial</span>
+    </a>
+
+    <a href="https://eyes.nasa.gov/apps/exo/" target="_blank"
+       class="group flex flex-col items-end py-2 transition-all duration-300">
+        <span class="text-[10px] font-mono text-gray-500 group-hover:text-white uppercase tracking-widest transition">Visualizer: 04</span>
+        <span class="text-xs font-bold text-white uppercase tracking-tighter border-b border-transparent group-hover:border-white transition">Exoplanets</span>
+    </a>
+
+</div>
+
+</header>
+
+<section id="section-2" class="py-24 px-12 reveal relative overflow-hidden bg-black">
+    <div class="w-full">
+        <h2 class="text-5xl font-black italic tracking-tighter text-white"></h2>
+        <p class="mono text-[10px] text-gray-500 tracking-[5px] mt-4 uppercase">Vector_Entry_02</p>
+        </div>
+
+
+
+    <img src="i-A.jpg"
+         alt="Cosmological Deep Field Map"
+         class="absolute inset-0 w-full h-full object-cover object-center " />
+
+    <div class="absolute inset-0 
+        bg-gradient-to-b 
+        from-black 
+        via-black/50 
+        to-black/60"></div>
+
+    <div class="absolute bottom-0 w-full h-40 
+        bg-gradient-to-b from-transparent to-black"></div>
+
+    <div class="max-w-6xl mx-auto relative z-10">
+        <h2 class="text-4xl font-black mb-10 tracking-tighter uppercase">Spacetime Mission Survey</h2>
+
+        <div class="space-y-6">
+
+            <a href="https://en.wikipedia.org/wiki/Soviet_space_program" class="block border-t border-white/20 py-6 hover:pl-6 transition-all duration-500 group">
+                <div class="flex justify-between items-baseline">
+                    <h3 class="text-2xl font-bold italic">Atmospheric Exit & LEO</h3>
+                    <span class="text-sm font-mono text-gray-500 group-hover:text-white transition">1957 — 1961</span>
+                </div>
+                <p class="text-gray-400 mt-2 text-sm">Sputnik 1 & Vostok 1: Verification of orbital mechanics and human biological endurance in microgravity.</p>
+            </a>
+
+            <a href="https://en.wikipedia.org/wiki/Apollo_program" class="block border-t border-white/20 py-6 hover:pl-6 transition-all duration-500 group">
+                <div class="flex justify-between items-baseline">
+                    <h3 class="text-2xl font-bold italic">Lunar Transit & Extraction</h3>
+                    <span class="text-sm font-mono text-gray-500 group-hover:text-white transition">1969 — 1972</span>
+                </div>
+                <p class="text-gray-400 mt-2 text-sm">The Apollo Program: Execution of EVA on a non-terrestrial body and successful gravity-well escape maneuvers.</p>
+            </a>
+
+            <a href="https://en.wikipedia.org/wiki/Voyager_program" class="block border-t border-white/20 py-6 hover:pl-6 transition-all duration-500 group">
+                <div class="flex justify-between items-baseline">
+                    <h3 class="text-2xl font-bold italic">Interstellar Trajectory</h3>
+                    <span class="text-sm font-mono text-gray-500 group-hover:text-white transition">1977 — ACTIVE</span>
+                </div>
+                <p class="text-gray-400 mt-2 text-sm">Voyager 1 & 2: Continuous data transmission from the heliopause into the local interstellar medium.</p>
+            </a>
+
+            <a href="https://en.wikipedia.org/wiki/Great_Observatories_program" class="block border-y border-white/20 py-6 hover:pl-6 transition-all duration-500 group">
+                <div class="flex justify-between items-baseline">
+                    <h3 class="text-2xl font-bold italic">Cosmological Observation</h3>
+                    <span class="text-sm font-mono text-gray-500 group-hover:text-white transition">1990 — ACTIVE</span>
+                </div>
+                <p class="text-gray-400 mt-2 text-sm">Hubble & JWST: Mapping the expansion of spacetime and the formation of high-redshift galaxies.</p>
+            </a>
+
+        </div>
+
+      <div class="mt-12">
+    <a href="https://en.wikipedia.org/wiki/List_of_spaceflight_records" 
+       style="position: relative; display: inline-block; background: #fff; color: #000; padding: 16px 40px; font-family: 'JetBrains Mono', monospace; font-weight: 900; text-transform: uppercase; letter-spacing: 4px; text-decoration: none; font-size: 10px; border: none; overflow: hidden;"
+       onmouseover="this.querySelector('.g1').style.opacity='1'; this.querySelector('.g2').style.opacity='1';"
+       onmouseout="this.querySelector('.g1').style.opacity='0'; this.querySelector('.g2').style.opacity='0';">
+        
+        <span style="position: relative; z-index: 10;">Open Mission Logs</span>
+
+        <span class="g1" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; color: #00fff0; display: flex; align-items: center; justify-content: center; opacity: 0; z-index: 5; mix-blend-mode: multiply; animation: glitch-1 0.2s infinite; pointer-events: none;">
+            Open Mission Logs
+        </span>
+
+        <span class="g2" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; color: #ff00c1; display: flex; align-items: center; justify-content: center; opacity: 0; z-index: 5; mix-blend-mode: multiply; animation: glitch-2 0.2s infinite reverse; pointer-events: none;">
+            Open Mission Logs
+        </span>
+    </a>
+</div>
+
+<style>
+    @keyframes glitch-1 {
+        0% { transform: translate(0); clip-path: inset(20% 0 50% 0); }
+        25% { transform: translate(-4px, 2px); clip-path: inset(40% 0 10% 0); }
+        50% { transform: translate(4px, -2px); clip-path: inset(10% 0 70% 0); }
+        75% { transform: translate(-2px, -4px); clip-path: inset(80% 0 5% 0); }
+        100% { transform: translate(0); clip-path: inset(20% 0 50% 0); }
+    }
+    @keyframes glitch-2 {
+        0% { transform: translate(0); clip-path: inset(10% 0 30% 0); }
+        25% { transform: translate(4px, -2px); clip-path: inset(30% 0 20% 0); }
+        50% { transform: translate(-4px, 2px); clip-path: inset(15% 0 60% 0); }
+        75% { transform: translate(2px, 4px); clip-path: inset(50% 0 10% 0); }
+        100% { transform: translate(0); clip-path: inset(10% 0 30% 0); }
+    }
+</style>
+
+    </div>
+</section>
+<section id="section-3" class="relative min-h-screen reveal overflow-hidden bg-black flex items-center px-6 md:px-24">
+    <div class="w-full">
+        <h2 class="text-5xl font-black italic tracking-tighter text-white">Artimus II</h2>
+        <p class="mono text-[10px] text-gray-500 tracking-[5px] mt-4 uppercase">Vector_Entry_03</p>
+        </div>
+
+    <video id="missionVideo" autoplay muted loop playsinline 
+        class="absolute inset-0 w-full h-full object-cover z-0">
+        <source src="V3.mp4" type="video/mp4">
+    </video>
+
+    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black z-0"></div>
+    <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-black to-transparent z-10"></div>
+
+    <div class="absolute left-12 top-1/2 -translate-y-1/2 hidden lg:flex flex-col space-y-24 z-20 opacity-40">
+        <div class="rotate-90 origin-left text-[10px] font-mono tracking-[1em] text-white uppercase whitespace-nowrap">
+            Trajectory: Lunar_Trans_Injection
+        </div>
+        <div class="h-32 w-[1px] bg-gradient-to-b from-transparent via-white to-transparent ml-2"></div>
+    </div>
+
+    <div class="relative z-20 ml-auto max-w-xl flex flex-col items-end text-right space-y-8 pr-4">
+        
+        <button onclick="toggleAudio()" 
+                class="flex items-center space-x-3 bg-white/5 hover:bg-white/20 backdrop-blur-md border border-white/20 px-6 py-2 transition-all duration-300 group">
+            <span id="audioIcon" class="text-white opacity-70 group-hover:opacity-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+            </span>
+            <span id="audioStatus" class="text-[10px] font-mono tracking-widest text-white uppercase">Audio: [OFF]</span>
+        </button>
+
+        <div class="flex items-center space-x-3 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-1 rounded-full">
+            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+            <span class="text-[10px] font-mono tracking-widest text-white uppercase">Live Telemetry Active</span>
+        </div>
+
+        <div class="space-y-2">
+            <h2 class="text-xs font-mono tracking-[0.5em] text-gray-400 uppercase">Current Mission Profile</h2>
+            <h3 class="text-6xl md:text-5xl font-black text-white uppercase tracking-tighter leading-none italic">
+                Artemis II
+            </h3>
+            <p class="text-2xl font-light text-gray-300 tracking-wide uppercase">The Lunar Flyby</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-8 w-full border-t border-white/10 pt-8 mt-4">
+            <div class="space-y-1">
+                <p class="text-[10px] font-mono text-gray-500 uppercase">Launch Window</p>
+                <p class="text-xl font-bold text-white">Q4 2026</p>
+            </div>
+            <div class="space-y-1">
+                <p class="text-[10px] font-mono text-gray-500 uppercase">Target Orbit</p>
+                <p class="text-xl font-bold text-white">Free-Return</p>
+            </div>
+        </div>
+
+        <p class="text-gray-400 text-sm md:text-base font-light leading-relaxed max-w-sm">
+            A crewed mission designed to orbit the Moon and return safely to Earth, marking a major step toward long-term human presence beyond our planet.
+        </p>
+
+        <div class="pt-6 w-full flex justify-end">
+            <a href="https://artemis2.live/" target="_blank"
+               class="group relative inline-flex items-center justify-end px-10 py-4 border border-white/20 overflow-hidden transition-all duration-700 hover:border-white w-full md:w-auto">
+                <span class="absolute inset-0 w-0 bg-white transition-all duration-500 ease-out group-hover:w-full"></span>
+                <span class="relative text-[10px] font-black uppercase tracking-[0.4em] text-white group-hover:text-black transition-colors duration-500">
+                    Explore Mission Data
+                </span>
+                <span class="relative ml-4 text-white group-hover:text-black group-hover:translate-x-3 transition-all duration-500">→</span>
+            </a>
+        </div>
+
+    </div>
+</section>
+
+<script>
+    function toggleAudio() {
+        const video = document.getElementById('missionVideo');
+        const status = document.getElementById('audioStatus');
+        
+        if (video.muted) {
+            video.muted = false;
+            status.innerText = "Audio: [LIVE]";
+            // Force play in case browser paused it due to unmuting
+            video.play();
+        } else {
+            video.muted = true;
+            status.innerText = "Audio: [OFF]";
+        }
+    }
+</script>
+
+<section class="py-24 px-12 reveal relative overflow-hidden bg-black text-white h-screen flex justify-center items-center">
+
+    <img src="i-4.jpg"
+         alt="Cosmological Deep Field Map"
+         class="absolute inset-0 w-full h-full object-cover object-center opacity-80" />
+
+    <div class="absolute inset-0 
+        bg-gradient-to-b 
+        from-black 
+        via-black/50 
+        to-black/60"></div>
+
+    <div class="absolute bottom-0 w-full h-40 
+        bg-gradient-to-b from-transparent to-black"></div>
+
+    <div class="relative z-10 flex flex-col justify-center items-center text-center max-w-6xl mx-auto space-y-12">
+
+        <div class="space-y-3">
+            <span class="text-xs font-mono tracking-[0.3em] text-gray-500 uppercase">System Status: Active</span>
+            <h2 class="text-5xl font-black uppercase tracking-tighter leading-none">Operations Center</h2>
+        </div>
+
+        <div class="flex flex-col space-y-5 w-full max-w-xs items-center">
+            
+            <a  
+                class="w-full border border-white/20 px-8 py-3 uppercase tracking-widest text-xs font-bold hover:bg-white hover:text-black transition-all duration-500">
+                *Enroll in Protocols
+            </a>
+
+            <a 
+                class="w-full border border-white/30 px-8 py-3 uppercase tracking-widest text-xs font-bold hover:bg-white hover:text-black transition-all duration-500">
+                *Access Network Portal
+            </a>
+
+            <hr class="border-white/10 w-full my-4">
+            
+            <a href="https://discord.com/invite/nasa" 
+                class="w-full bg-white text-black px-8 py-4 uppercase tracking-widest text-xs font-black hover:bg-gray-300 transition-all duration-500 shadow-lg">
+                Initialize Community Uplink
+            </a>
+            
+            <p class="text-[10px] font-mono text-white-600 uppercase tracking-tight">
+                Secure Channel: #Spacetime-Missions-Active
+            </p>
+        </div>
+
+    </div>
+</section>
+<!-- FOOTER -->
+<footer class="relative h-screen overflow-hidden flex flex-col justify-center bg-black">
+
+    <video id="footerVideo" playsinline preload="auto"
+        class="absolute inset-0 w-full h-full object-cover opacity-60 transition-opacity duration-1000">
+        <source src="V4.mp4" type="video/mp4">
+    </video>
+
+    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black z-0"></div>
+    <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-black to-transparent z-10"></div>
+
+    <div class="relative z-20 space-y-12 max-w-5xl pl-6 md:pl-16 -mt-24">
+        
+        <div class="flex items-center space-x-4">
+            <span class="text-[10px] font-mono tracking-[0.6em] text-gray-500 uppercase">
+                Archive Complete // Sequence Terminal
+            </span>
+            <div class="h-[1px] w-48 bg-white/20"></div>
+        </div>
+
+        <h2 class="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-none text-white drop-shadow-2xl">
+            The Passage
+        </h2>
+
+        <div class="flex space-x-5 pt-4">
+
+            <a href="javascript:void(0)" 
+                id="trailerBtn"
+                onclick="toggleTrailer(event)"
+                class="border border-white/30 px-10 py-3 uppercase tracking-widest text-xs font-bold text-white hover:bg-white hover:text-black transition-all duration-500 shadow-xl cursor-pointer">
+                Trailer
+            </a>
+
+            <a href="https://www.youtube.com/watch?v=uSMGENDH_QI" 
+                target="_blank"
+                class="bg-white text-black px-10 py-3 uppercase tracking-widest text-xs font-black hover:bg-gray-300 transition-all duration-500 shadow-xl">
+                Watch Now
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="absolute bottom-12 right-12 z-20 hidden md:block border-l border-white/10 pl-6 py-2">
+        <p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest leading-loose text-right">
+            Lat: 00.0000°<br>
+            Lon: 00.0000°<br>
+            Threshold Status: [OPEN]
+        </p>
+    </div>
+
+</footer>
+
+<script>
+    function toggleTrailer(event) {
+        const video = document.getElementById('footerVideo');
+        const btn = event.currentTarget;
+        
+        if (video.paused) {
+            // ACTION: Play Video
+            video.muted = false; // Enable audio
+            video.play();
+            
+            // Visual Update
+            btn.innerHTML = "Stop Trailer";
+            btn.classList.add('bg-white', 'text-black');
+            btn.classList.remove('text-white');
+            
+            // Log to terminal if you have your Operations Center active
+            console.log("> UPLINK ESTABLISHED: THE PASSAGE // STREAMING...");
+        } else {
+            // ACTION: Stop Video
+            video.pause();
+            video.currentTime = 0; // Reset to start
+            
+            // Visual Update
+            btn.innerHTML = "Trailer";
+            btn.classList.remove('bg-white', 'text-black');
+            btn.classList.add('text-white');
+            
+            console.log("> UPLINK TERMINATED.");
+        }
+    }
+</script>
+<!-- SCRIPT -->
+<script>
+window.addEventListener('scroll', () => {
+    document.querySelectorAll('.reveal').forEach(el => {
+        if (el.getBoundingClientRect().top < window.innerHeight - 150) {
+            el.classList.add('active');
+        }
+    });
+});
+</script>
+<section class="h-screen flex flex-col items-center justify-center bg-black relative overflow-hidden border-t border-white/10">
+    
+    <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-100 brightness-110 pointer-events-none z-0">
+        <source src="bg.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <div class="relative z-10 text-center space-y-12">
+        <h2 class="mono text-[10px] tracking-[1em] text-gray-500 uppercase animate-pulse">THANKS FOR THE VISIT</h2>
+        
+        <div class="relative group">
+            <div class="absolute -inset-4 bg-white/5 rounded-full blur-xl group-hover:bg-white/20 transition-all duration-700 scale-50 group-hover:scale-150"></div>
+            
+        <button onclick="window.location.href='riddle.html'" class="relative px-8 py-8 rounded-full border border-white/20 bg-black text-white mono text-[11px] tracking-[5px] uppercase transition-all duration-500 hover:scale-110 hover:border-white active:scale-90 group">
+    <span class="group-hover:hidden">Untold Story</span>
+    <span class="hidden group-hover:block animate-glitch text-red-500">Decrypt?</span>
+</button>
+        </div>
+
+        <p class="text-gray-600 text-[9px] uppercase tracking-widest max-w-xs mx-auto leading-relaxed">
+            Solve these to check your knowlege and engage in the stories of 'VOID' expedition.
+        </p>
+    </div>
+</section>
+
+<style>
+    @keyframes glitch {
+        0% { transform: translate(0); }
+        20% { transform: translate(-2px, 2px); }
+        40% { transform: translate(-2px, -2px); }
+        60% { transform: translate(2px, 2px); }
+        80% { transform: translate(2px, -2px); }
+        100% { transform: translate(0); }
+    }
+    .animate-glitch { animation: glitch 0.2s infinite; }
+</style>
+<a href="game1.html" class="fixed bottom-4 left-4 z-[200] flex items-center group no-underline">
+    
+    <div class="relative w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(255,255,255,0.3)] group-hover:scale-110 transition-transform duration-300">
+        
+        <div class="flex space-x-1">
+            <div class="w-1 h-1 bg-black rounded-full animate-pulse"></div>
+            <div class="w-1 h-1 bg-black rounded-full animate-pulse"></div>
+        </div>
+
+        <div class="absolute bottom-1 flex space-x-2 opacity-20">
+            <div class="w-1.5 h-0.5 bg-pink-500 rounded-full"></div>
+            <div class="w-1.5 h-0.5 bg-pink-500 rounded-full"></div>
+        </div>
+        
+        <div class="absolute -top-1 -right-1 w-2 h-2 bg-cyan-500 rounded-full border border-black animate-ping"></div>
+    </div>
+
+    <span class="ml-2 overflow-hidden max-w-0 group-hover:max-w-[100px] transition-all duration-500 ease-in-out whitespace-nowrap">
+        <span class="mono text-[8px] text-white font-bold uppercase tracking-[3px] bg-black/50 px-2.5 py-1 border border-white/10 rounded-full shadow-lg">
+            Play_Core
+        </span>
+    </span>
+</a>
+
+<style>
+    
+    [href="game1.html"] {
+        animation: microFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes microFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-3px); }
+    }
+</style>
+<script>
+function executeVoidSearch(event) {
+    
+    if (event.key === "Enter") {
+        const query = event.target.value.toLowerCase().trim();
+        let targetSection = "";
+
+        
+        if (query.includes("Documentary")) {
+            targetSection = "section-4";
+        } else if (query.includes("artimus II")) {
+            targetSection = "section-3";
+        } else if (query.includes("untold")) {
+            targetSection = "section-5";
+        } else if (query.includes("community")) {
+            targetSection = "section-4";
+        } else if (query.includes("Information")) {
+            targetSection = "section-1";
+        } else if (query.includes("Signup")) {
+            targetSection = "section-2";
+        }
+
+        
+        if (targetSection) {
+            const element = document.getElementById(targetSection);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+                
+                
+                element.style.filter = "brightness(1.5)";
+                setTimeout(() => { element.style.filter = "brightness(1)"; }, 1000);
+            } else {
+                console.warn(`Vector target ${targetSection} not found in DOM.`);
+            }
+        }
+        
+        
+        event.target.value = "";
+        event.target.blur();
+    }
+}
+</script>
+
+</body>
+</html>

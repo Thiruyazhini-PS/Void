@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOID | Recovered Log // Gravity Waves</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background-color: #000; 
+            color: #fff; 
+            font-family: 'Space Grotesk', sans-serif; 
+            overflow-x: hidden; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Ghost Background Text */
+        .bg-text {
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%);
+            font-size: 18vw; 
+            font-weight: 900; 
+            opacity: 0.03; 
+            z-index: -1; 
+            text-transform: uppercase;
+            letter-spacing: 50px;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* The "Texting" container */
+        #storyContainer {
+            max-width: 800px;
+            width: 90%;
+            margin: auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Flickering Cursor */
+        .cursor { 
+            display: inline-block; 
+            width: 10px; 
+            height: 24px; 
+            background: #fff; 
+            animation: blink 0.8s infinite; 
+            vertical-align: middle;
+            margin-left: 4px;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Data line styling */
+        .data-line {
+            color: #4ade80; /* Matrix-style green */
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+
+        /* Scanline VFX */
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+        .back-btn {
+            position: fixed;
+            top: 40px;
+            left: 40px;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            text-decoration: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 3px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+        .back-btn:hover {
+            color: #fff;
+            border-color: #fff;
+            padding-left: 20px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body>
+     <a href="riddle.html" class="back-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        RETURN_TO_TERMINAL
+    </a>
+
+    <div class="scanlines"></div>
+    <div id="bgWord" class="bg-text">RIPPLES</div>
+
+    <div id="storyContainer">
+        <div class="text-xl md:text-3xl leading-relaxed text-gray-300 font-light">
+            <span id="typingArea"></span><span id="cursor" class="cursor"></span>
+        </div>
+    </div>
+
+    <div class="fixed bottom-10 w-full px-10 flex justify-between items-center mono text-[9px] text-gray-600 tracking-[5px] uppercase">
+        <div>UPLINK_STABLE // NOVEL_MODE</div>
+        <div>NODE: 03 // GRAVITY_WAVES</div>
+    </div>
+
+    <script>
+        const storyContent = [
+            "The signal came as a chirp. Just a fraction of a second.",
+            "But when we replayed it… it wasn’t random.",
+            "There was rhythm.",
+            "We thought we were hearing two black holes collide.",
+            "But what if… something out there knows how to shake space itself—",
+            "just to make sure we’re listening?",
+            "---", // Visual break
+            "SYSTEM_UPDATE: Yes. Gravity can form waves.",
+            "EVENT_ID: GW150914 (Detected 14 Sept 2015).",
+            "DISTANCE: 1.3 billion light-years.",
+            "LOG: We are no longer just seeing the stars. We are hearing them."
+        ];
+
+        let lineIndex = 0;
+        let charIndex = 0;
+        const typingArea = document.getElementById('typingArea');
+        const cursor = document.getElementById('cursor');
+
+        function typeLetter() {
+            if (lineIndex < storyContent.length) {
+                const currentLine = storyContent[lineIndex];
+
+                // If it's a separator, skip typing and just add a line
+                if (currentLine === "---") {
+                    typingArea.appendChild(document.createElement('br'));
+                    typingArea.appendChild(document.createElement('hr')).style.cssText = "border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 30px 0;";
+                    lineIndex++;
+                    setTimeout(typeLetter, 500);
+                    return;
+                }
+
+                if (charIndex < currentLine.length) {
+                    const span = document.createElement('span');
+                    span.innerText = currentLine[charIndex];
+                    
+                    // Style the system/data lines differently
+                    if (lineIndex > 6) {
+                        span.className = "data-line";
+                    }
+
+                    typingArea.appendChild(span);
+                    charIndex++;
+                    
+                    // Typing speed (slightly faster for data lines)
+                    let speed = (lineIndex > 6) ? 20 : 45;
+                    setTimeout(typeLetter, speed);
+                } else {
+                    // Line complete: add breaks
+                    typingArea.appendChild(document.createElement('br'));
+                    typingArea.appendChild(document.createElement('br'));
+                    
+                    lineIndex++;
+                    charIndex = 0;
+                    
+                    // Dramatic pause between paragraphs
+                    let pause = (lineIndex === 6) ? 1500 : 1000;
+                    setTimeout(typeLetter, pause);
+                }
+            } else {
+                // Remove cursor at the end or make it stay
+                // cursor.style.display = 'none';
+            }
+        }
+
+        // Start initial delay
+        window.onload = () => {
+            setTimeout(typeLetter, 1500);
+        };
+    </script>
+</body>
+</html>

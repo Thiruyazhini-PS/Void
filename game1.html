@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>VOID | NEURAL_STRIKE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;400;800&display=swap');
+
+        :root {
+            --neon: #00f2ff;
+            --warn: #ff0044;
+            --bg: #00040a;
+            --font: 'JetBrains Mono', monospace;
+        }
+
+        * { box-sizing: border-box; cursor: crosshair; }
+        body, html { 
+            margin: 0; padding: 0; overflow: hidden; 
+            background: var(--bg); font-family: var(--font); color: var(--neon);
+            height: 100vh;
+        }
+
+        /* Top Navigation Bar */
+        #top-nav {
+            position: fixed; top: 0; left: 0; width: 100%;
+            padding: 20px 30px; display: flex; justify-content: space-between;
+            align-items: center; z-index: 500; pointer-events: all;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+        }
+
+        .void-logo { 
+            font-size: 24px; font-weight: 900; tracking: 10px; 
+            text-transform: uppercase; color: #fff; cursor: pointer;
+        }
+
+        .exit-link {
+            font-size: 10px; color: rgba(255,255,255,0.4);
+            text-decoration: none; border: 1px solid rgba(255,255,255,0.1);
+            padding: 8px 15px; text-transform: uppercase; tracking: 3px;
+            transition: 0.3s;
+        }
+        .exit-link:hover { color: var(--warn); border-color: var(--warn); background: rgba(255,0,68,0.1); }
+
+        /* Scanline Overlay */
+        #crt-layer {
+            position: fixed; inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none; z-index: 1000;
+        }
+
+        #hud {
+            position: absolute; inset: 0; padding: 100px 40px 40px 40px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            pointer-events: none; z-index: 100;
+        }
+
+        .score-box { font-size: 40px; font-weight: 800; color: #fff; }
+        
+        .radar-frame {
+            width: 200px; height: 120px;
+            border: 1px solid rgba(0, 242, 255, 0.1);
+            background: rgba(0, 5, 10, 0.8);
+            position: relative;
+        }
+        #radarCanvas { display: block; width: 100%; height: 100%; }
+
+        /* AESTHETIC FAIL OVERLAY */
+        #fail-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.98);
+            display: none; flex-direction: column; align-items: center; 
+            justify-content: center; z-index: 2000; text-align: center;
+        }
+        .fail-header { 
+            font-size: 12px; color: var(--warn); letter-spacing: 12px; 
+            text-transform: uppercase; margin-bottom: 40px; opacity: 0.8;
+        }
+        .fail-stat-row {
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 20px 0; width: 300px; display: flex; justify-content: space-between;
+        }
+        .stat-label { font-size: 9px; color: rgba(255,255,255,0.3); text-transform: uppercase; tracking: 2px; }
+        .stat-value { font-size: 14px; color: #fff; font-weight: 800; }
+
+        .btn-retry {
+            margin-top: 50px; background: white; color: black; border: none;
+            padding: 12px 40px; font-size: 10px; font-weight: 800; 
+            text-transform: uppercase; tracking: 5px; cursor: pointer; transition: 0.3s;
+        }
+        .btn-retry:hover { letter-spacing: 8px; background: var(--neon); }
+
+        canvas#main { position: fixed; inset: 0; z-index: 1; }
+
+        .critical-danger { animation: flash-red 0.4s infinite alternate; }
+        @keyframes flash-red { from { box-shadow: inset 0 0 0px var(--warn); } to { box-shadow: inset 0 0 100px rgba(255, 0, 68, 0.1); } }
+    </style>
+</head>
+<body id="game-body">
+
+<div id="crt-layer"></div>
+
+<header id="top-nav">
+    <div class="void-logo" onclick="toggleFullScreen()">VOID</div>
+    <a href="timeline.html" class="exit-link">X_CLOSE_OS</a>
+</header>
+
+<div id="hud">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div id="sys-stats">
+            <div style="font-size: 8px; opacity: 0.4; letter-spacing: 2px;">NEURAL_STRIKE // KERNEL_v11</div>
+            <div id="status-tag" style="font-size: 12px; font-weight: 800; margin-top: 4px;">[NOMINAL]</div>
+            <div style="margin-top: 15px; font-size: 10px; opacity: 0.6;">PACE: <span id="pace-display" style="color:#fff">1.0x</span></div>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 8px; opacity: 0.4; letter-spacing: 2px;">RECOVERY_YIELD</div>
+            <div id="score" class="score-box">000000</div>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+            <div style="font-size: 8px; margin-bottom: 8px; opacity: 0.4; tracking: 2px;">TACTICAL_RADAR</div>
+            <div class="radar-frame">
+                <canvas id="radarCanvas"></canvas>
+            </div>
+        </div>
+        <div style="text-align: right; opacity: 0.3; font-size: 7px; letter-spacing: 1px;">
+            COORD_X: <span id="pos-x">0</span><br>COORD_Y: <span id="pos-y">0</span>
+        </div>
+    </div>
+</div>
+
+<div id="fail-overlay">
+    <div class="fail-header">Neural_Link_Severed</div>
+    
+    <div class="fail-stat-row">
+        <span class="stat-label">Data_Kills</span>
+        <span id="final-score" class="stat-value">0</span>
+    </div>
+    <div class="fail-stat-row">
+        <span class="stat-label">Core_Pace</span>
+        <span id="final-pace" class="stat-value">1.0x</span>
+    </div>
+    <div class="fail-stat-row" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <span class="stat-label">Status</span>
+        <span class="stat-value" style="color:var(--warn)">DECEASED</span>
+    </div>
+
+    <button class="btn-retry" onclick="location.reload()">Reboot_System</button>
+</div>
+
+<canvas id="main"></canvas>
+
+<script>
+const MainCanvas = document.getElementById('main');
+const mCtx = MainCanvas.getContext('2d');
+const RadarCanvas = document.getElementById('radarCanvas');
+const rCtx = RadarCanvas.getContext('2d');
+
+let W, H, score = 0, isActive = true;
+let bogeys = [], projectiles = [], stars = [];
+
+const ENGINE = {
+    pace: 1.0,
+    spawnRate: 0.015,
+    maxPace: 8.5,
+    playerX: 0,
+    deadZone: 0
+};
+
+function setup() {
+    W = MainCanvas.width = window.innerWidth;
+    H = MainCanvas.height = window.innerHeight;
+    RadarCanvas.width = 200;
+    RadarCanvas.height = 120;
+    ENGINE.playerX = W - 80;
+    ENGINE.deadZone = W * 0.70;
+
+    stars = Array.from({length: 250}, () => ({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        s: Math.random() * 1.5
+    }));
+}
+
+function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+    }
+}
+
+class RailBolt {
+    constructor(tx, ty) {
+        this.x = ENGINE.playerX;
+        this.y = H / 2;
+        const angle = Math.atan2(ty - this.y, tx - this.x);
+        this.vx = Math.cos(angle) * 60;
+        this.vy = Math.sin(angle) * 60;
+    }
+    update() { this.x += this.vx; this.y += this.vy; }
+    draw() {
+        mCtx.strokeStyle = "#fff";
+        mCtx.lineWidth = 4;
+        mCtx.beginPath();
+        mCtx.moveTo(this.x, this.y);
+        mCtx.lineTo(this.x - this.vx * 0.15, this.y - this.vy * 0.15);
+        mCtx.stroke();
+    }
+}
+
+class Bogey {
+    constructor() {
+        this.x = -50;
+        this.y = Math.random() * (H - 200) + 100;
+        this.size = 12 + Math.random() * 8;
+        this.speed = (2.0 * ENGINE.pace) * (0.9 + Math.random() * 0.3);
+        this.isCritical = false;
+    }
+    update() {
+        this.x += this.speed;
+        this.isCritical = this.x > ENGINE.deadZone;
+        if (this.x > W - 85) failMission();
+    }
+    draw() {
+        mCtx.save();
+        mCtx.translate(this.x, this.y);
+        mCtx.strokeStyle = this.isCritical ? "#ff0044" : "#00f2ff";
+        mCtx.lineWidth = 1.5;
+        mCtx.beginPath();
+        for(let i=0; i<4; i++) {
+            const a = (Math.PI*2/4)*i;
+            mCtx.lineTo(Math.cos(a)*this.size, Math.sin(a)*this.size);
+        }
+        mCtx.closePath();
+        mCtx.stroke();
+        mCtx.restore();
+    }
+}
+
+function failMission() {
+    isActive = false;
+    document.getElementById('fail-overlay').style.display = 'flex';
+    document.getElementById('final-score').innerText = score.toString();
+    document.getElementById('final-pace').innerText = ENGINE.pace.toFixed(2) + "x";
+}
+
+function adjustDifficulty() {
+    ENGINE.pace = 1.0 + (score / 5000); 
+    if (ENGINE.pace > ENGINE.maxPace) ENGINE.pace = ENGINE.maxPace;
+    document.getElementById('pace-display').innerText = ENGINE.pace.toFixed(1) + "x";
+}
+
+window.addEventListener('mousedown', (e) => {
+    if(isActive && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
+        projectiles.push(new RailBolt(e.clientX, e.clientY));
+    }
+});
+
+window.addEventListener('mousemove', (e) => {
+    document.getElementById('pos-x').innerText = Math.floor(e.clientX);
+    document.getElementById('pos-y').innerText = Math.floor(e.clientY);
+});
+
+function render(t) {
+    if (!isActive) return;
+
+    mCtx.fillStyle = '#00040a';
+    mCtx.fillRect(0, 0, W, H);
+    
+    mCtx.fillStyle = 'rgba(255,255,255,0.3)';
+    stars.forEach(s => mCtx.fillRect(s.x, s.y, s.s, s.s));
+
+    if (Math.random() < ENGINE.spawnRate + (score/250000)) {
+        bogeys.push(new Bogey());
+    }
+
+    rCtx.clearRect(0,0, 200, 120);
+    rCtx.strokeStyle = "rgba(0, 242, 255, 0.05)";
+    for(let i=0; i<200; i+=20) { rCtx.beginPath(); rCtx.moveTo(i,0); rCtx.lineTo(i,120); rCtx.stroke(); }
+
+    let dangerousCount = 0;
+
+    bogeys.forEach((b, bi) => {
+        b.update(); b.draw();
+        if(b.isCritical) dangerousCount++;
+
+        const rx = (b.x / W) * 200;
+        const ry = (b.y / H) * 120;
+        if (b.isCritical) {
+            rCtx.fillStyle = (t % 400 < 200) ? "#ff0044" : "#fff";
+            rCtx.beginPath(); rCtx.arc(rx, ry, 3, 0, Math.PI*2); rCtx.fill();
+        } else {
+            rCtx.fillStyle = "#00f2ff";
+            rCtx.fillRect(rx-1.5, ry-1.5, 3, 3);
+        }
+
+        projectiles.forEach((p, pi) => {
+            if (Math.hypot(p.x - b.x, p.y - b.y) < b.size + 15) {
+                score += 250;
+                document.getElementById('score').innerText = score.toString().padStart(6, '0');
+                bogeys.splice(bi, 1);
+                projectiles.splice(pi, 1);
+                adjustDifficulty();
+            }
+        });
+    });
+
+    projectiles.forEach((p, i) => {
+        p.update(); p.draw();
+        if(p.x < 0 || p.x > W) projectiles.splice(i, 1);
+    });
+
+    const body = document.getElementById('game-body');
+    const status = document.getElementById('status-tag');
+    if (dangerousCount > 0) {
+        body.classList.add('critical-danger');
+        status.innerText = "[CRITICAL_NEAR]";
+        status.style.color = "#ff0044";
+    } else {
+        body.classList.remove('critical-danger');
+        status.innerText = "[NOMINAL]";
+        status.style.color = "#00f2ff";
+    }
+
+    // Player Railgun Cannon
+    mCtx.strokeStyle = "rgba(255,255,255,0.2)";
+    mCtx.lineWidth = 1;
+    mCtx.strokeRect(ENGINE.playerX, H/2 - 30, 20, 60);
+    mCtx.fillStyle = (dangerousCount > 0) ? "#ff0044" : "#00f2ff";
+    mCtx.fillRect(ENGINE.playerX + 4, H/2 - 20, 12, 40);
+
+    requestAnimationFrame(render);
+}
+
+setup();
+window.addEventListener('resize', setup);
+render(0);
+</script>
+</body>
+</html>
