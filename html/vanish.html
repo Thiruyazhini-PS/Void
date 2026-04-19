@@ -4,7 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The VOID</title>
-    <link rel="stylesheet" href="css/vanish.css">
+    <style>
+        body, html {
+    margin: 0;
+    padding: 0;
+    background-color: #000; /* The "End State" of the vanish */
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.main-container {
+    text-align: center;
+    color: white;
+    transition: all 2s ease-in-out;
+}
+
+.logo {
+    font-size: 5rem;
+    letter-spacing: 15px;
+    margin: 0;
+    font-weight: 900;
+}
+
+.status {
+    letter-spacing: 3px;
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
+/* This class is added by JavaScript to trigger the vanish */
+.vanish-effect {
+    opacity: 0;
+    filter: blur(30px) brightness(0);
+    transform: scale(0.9); /* Shrinks slightly as it disappears */
+    pointer-events: none;
+}
+    </style>
 </head>
 <body>
 
